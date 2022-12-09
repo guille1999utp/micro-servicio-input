@@ -7,6 +7,7 @@ const { config }= require('../utils/config');
 const { client }= require('../utils/client');
 const axios= require('axios');
 const { urlFor } = require('../utils/image');
+const { transporter } = require('../utils/nodemailer');
 
 let options = {
   format: 'A4', printBackground: true, scale: 1, preferCSSPageSize: true
