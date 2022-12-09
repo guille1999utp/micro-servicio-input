@@ -14,7 +14,6 @@ app.use(isFree);
 
 
 app.post("/mercadopago", async (req, res) => {
-  console.log("entro", req.body);
   const { evento, users, staff, ...resBody } = req.body;
   const projectId = config.projectId;
   const dataset = config.dataset;

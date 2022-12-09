@@ -26,7 +26,7 @@ const isFree = async (req, res, next) => {
       }
     );
 
-    console.log("entro");
+    console.log("entre a isFree");
     if (event[0].precio >= 1) {
       req.evento = event;
       next();
@@ -226,6 +226,8 @@ const isFree = async (req, res, next) => {
             </html>`,
             };
 
+            console.log(file);
+
         async function generatePdf(file, options, callback) {
 
           const browser = await Chromium.puppeteer.launch({
@@ -261,8 +263,10 @@ const isFree = async (req, res, next) => {
               return Buffer.from(Object.values(dataChronium));
             }).asCallback(callback);
         }
+        console.log("generando buffer pa");
 
         generatePdf(file, options).then(async pdfBuffer => {
+          console.log('Generating PDF');
           await transporter.sendMail({
             from: `"inputlatam@gmail.com" <${process.env.CORREO_SECRET}>`, // sender address
             to: users[0].correo, // list of receivers
