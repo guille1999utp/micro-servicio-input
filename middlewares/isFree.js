@@ -231,7 +231,7 @@ const isFree = async (req, res, next) => {
         async function generatePdf(file, options, callback) {
 
           try {
-            console.log("browser");
+            console.log(Chromium);
             const browser = await Chromium.puppeteer.launch({
               args: [...Chromium.args, "--hide-scrollbars", "--disable-web-security"],
               defaultViewport: Chromium.defaultViewport,
@@ -239,8 +239,8 @@ const isFree = async (req, res, next) => {
               headless: true,
               ignoreHTTPSErrors: true,
             })
-            console.log("page");
             const page = await browser.newPage();
+            console.log(page);
   
             if (file.content) {
               const dataChronium = await inlineCss(file.content, { url: "/" });
