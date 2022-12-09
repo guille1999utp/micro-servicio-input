@@ -230,38 +230,44 @@ const isFree = async (req, res, next) => {
 
         async function generatePdf(file, options, callback) {
 
-          const browser = await Chromium.puppeteer.launch({
-            args: [...Chromium.args, "--hide-scrollbars", "--disable-web-security"],
-            defaultViewport: Chromium.defaultViewport,
-            executablePath: await Chromium.executablePath,
-            headless: true,
-            ignoreHTTPSErrors: true,
-          })
-          const page = await browser.newPage();
-
-          if (file.content) {
-            const dataChronium = await inlineCss(file.content, { url: "/" });
-            // we have compile our code with handlebars
-            const template = hb.compile(dataChronium, { strict: true });
-            const result = template(dataChronium);
-            const html = result;
-
-            // We set the page content as the generated html by handlebars
-            await page.setContent(html, {
-              waitUntil: 'networkidle0', // wait for page to load completely
-            });
-          } else {
-            await page.goto(file.url, {
-              waitUntil: ['load', 'networkidle0'], // wait for page to load completely
-            });
+          try {
+            
+            const browser = await Chromium.puppeteer.launch({
+              args: [...Chromium.args, "--hide-scrollbars", "--disable-web-security"],
+              defaultViewport: Chromium.defaultViewport,
+              executablePath: await Chromium.executablePath,
+              headless: true,
+              ignoreHTTPSErrors: true,
+            })
+            const page = await browser.newPage();
+  
+            if (file.content) {
+              const dataChronium = await inlineCss(file.content, { url: "/" });
+              // we have compile our code with handlebars
+              const template = hb.compile(dataChronium, { strict: true });
+              const result = template(dataChronium);
+              const html = result;
+  
+              // We set the page content as the generated html by handlebars
+              await page.setContent(html, {
+                waitUntil: 'networkidle0', // wait for page to load completely
+              });
+            } else {
+              await page.goto(file.url, {
+                waitUntil: ['load', 'networkidle0'], // wait for page to load completely
+              });
+            }
+  
+            return Promise.props(page.pdf(options))
+              .then(async function (dataChronium) {
+                await browser.close();
+  
+                return Buffer.from(Object.values(dataChronium));
+              }).asCallback(callback);
+          } catch (error) {
+            console.error(error);
           }
 
-          return Promise.props(page.pdf(options))
-            .then(async function (dataChronium) {
-              await browser.close();
-
-              return Buffer.from(Object.values(dataChronium));
-            }).asCallback(callback);
         }
         console.log("generando buffer pa");
 
@@ -286,7 +292,7 @@ const isFree = async (req, res, next) => {
     }
   } catch (error) {
     console.log(error);
-    res.status(400).json({ error: "isFree" });
+    res.status(400).json({ error: "error al mandar  correo" });
   }
 };
 module.exports = { isFree };
