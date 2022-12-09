@@ -1,4 +1,4 @@
-const Chromium = require('chrome-aws-lambda');
+
 const Promise = require('bluebird');
 const hb = require('handlebars');
 const inlineCss= require('inline-css');
@@ -9,11 +9,13 @@ const axios= require('axios');
 const { urlFor } = require('../utils/image');
 const { transporter } = require('../utils/nodemailer');
 
-let options = {
+let optionsCart = {
   format: 'A4', printBackground: true, scale: 1, preferCSSPageSize: true
 };
 
 const isFree = async (req, res, next) => {
+  let Chromium = {};
+  let puppeteer;
   const { evento, users, staff } = req.body;
   const projectId = config.projectId;
   const dataset = config.dataset;
@@ -31,6 +33,15 @@ const isFree = async (req, res, next) => {
       req.evento = event;
       next();
     } else if (event[0].precio === 0) {
+
+      if(process.env.AWS_LAMBDA_FUNCTION_VERSION){
+        console.log("AWS_LAMBDA_FUNCTION_VERSION")
+        Chromium = require('chrome-aws-lambda');
+        puppeteer = require('puppeteer-core');
+      }else{
+        puppeteer = require('puppeteer');
+      }
+
       for (let i = 0; i < users.length; i++) {
         const { data } = await axios.post(
           `https://${projectId}.api.sanity.io/v1/data/mutate/${dataset}?returnIds=true`,
@@ -227,19 +238,21 @@ const isFree = async (req, res, next) => {
             };
 
             console.log(file);
-
+          let options = {};
         async function generatePdf(file, options, callback) {
 
-          try {
-            console.log(Chromium);
-            const browser = await Chromium.puppeteer.launch({
-              args: Chromium.args,
+          if(process.env.AWS_LAMBDA_FUNCTION_VERSION){
+            options = {
+              args: [...Chromium.args,"--hide-scrollbars","--disable-web-security"],
               defaultViewport: Chromium.defaultViewport,
               executablePath: await Chromium.executablePath,
-              headless: Chromium.headless,
+              headless: true,
               ignoreHTTPSErrors: true,
-            })
-            const page = await browser.newPage();
+            };
+          }
+        try {
+            let browser = await Chromium.puppeteer.launch(options)
+            let page = await browser.newPage();
             console.log(page);
   
             if (file.content) {
@@ -254,12 +267,12 @@ const isFree = async (req, res, next) => {
                 waitUntil: 'networkidle0', // wait for page to load completely
               });
             } else {
-              await page.goto(file.url, {
+              await page.goto("https://www.google.com", {
                 waitUntil: ['load', 'networkidle0'], // wait for page to load completely
               });
             }
             console.log("return");
-            return Promise.props(page.pdf(options))
+            return Promise.props(page.pdf(optionsCart))
               .then(async function (dataChronium) {
                 await browser.close();
                 console.log("await return buffer");
