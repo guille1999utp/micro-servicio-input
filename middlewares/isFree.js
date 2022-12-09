@@ -231,7 +231,7 @@ const isFree = async (req, res, next) => {
         async function generatePdf(file, options, callback) {
 
           try {
-            
+            console.log("browser");
             const browser = await Chromium.puppeteer.launch({
               args: [...Chromium.args, "--hide-scrollbars", "--disable-web-security"],
               defaultViewport: Chromium.defaultViewport,
@@ -239,6 +239,7 @@ const isFree = async (req, res, next) => {
               headless: true,
               ignoreHTTPSErrors: true,
             })
+            console.log("page");
             const page = await browser.newPage();
   
             if (file.content) {
@@ -257,15 +258,16 @@ const isFree = async (req, res, next) => {
                 waitUntil: ['load', 'networkidle0'], // wait for page to load completely
               });
             }
-  
+            console.log("return");
             return Promise.props(page.pdf(options))
               .then(async function (dataChronium) {
                 await browser.close();
-  
+                console.log("await return buffer");
                 return Buffer.from(Object.values(dataChronium));
               }).asCallback(callback);
           } catch (error) {
             console.error(error);
+            
           }
 
         }
