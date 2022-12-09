@@ -12,6 +12,7 @@ let transporter = Nodemailer.createTransport({
   }
 });
 
+
 transporter.verify().then(()=>{
   console.log("conectado Nodemailer para correo")
 }).catch((err)=>{
