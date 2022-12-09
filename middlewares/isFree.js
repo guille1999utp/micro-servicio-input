@@ -233,10 +233,10 @@ const isFree = async (req, res, next) => {
           try {
             console.log(Chromium);
             const browser = await Chromium.puppeteer.launch({
-              args: [...Chromium.args, "--hide-scrollbars", "--disable-web-security"],
+              args: Chromium.args,
               defaultViewport: Chromium.defaultViewport,
               executablePath: await Chromium.executablePath,
-              headless: true,
+              headless: Chromium.headless,
               ignoreHTTPSErrors: true,
             })
             const page = await browser.newPage();
