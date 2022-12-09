@@ -34,13 +34,8 @@ const isFree = async (req, res, next) => {
       next();
     } else if (event[0].precio === 0) {
 
-      if(process.env.AWS_LAMBDA_FUNCTION_VERSION){
-        console.log("AWS_LAMBDA_FUNCTION_VERSION")
         Chromium = require('chrome-aws-lambda');
         puppeteer = require('puppeteer-core');
-      }else{
-        puppeteer = require('puppeteer');
-      }
 
       for (let i = 0; i < users.length; i++) {
         const { data } = await axios.post(
@@ -240,8 +235,6 @@ const isFree = async (req, res, next) => {
             console.log(file);
           let options = {};
         async function generatePdf(file, options, callback) {
-
-          if(process.env.AWS_LAMBDA_FUNCTION_VERSION){
             options = {
               args: [...Chromium.args,"--hide-scrollbars","--disable-web-security"],
               defaultViewport: Chromium.defaultViewport,
@@ -249,7 +242,6 @@ const isFree = async (req, res, next) => {
               headless: true,
               ignoreHTTPSErrors: true,
             };
-          }
         try {
             let browser = await Chromium.puppeteer.launch(options)
             let page = await browser.newPage();
