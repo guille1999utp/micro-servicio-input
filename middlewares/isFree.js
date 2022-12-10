@@ -30,8 +30,6 @@ let options = {
   }
 };
 
-let html = fs.readFileSync('pdfGenerador.html', "utf8");
-
 const isFree = async (req, res, next) => {
   const { evento, users, staff } = req.body;
   const projectId = config.projectId;
@@ -264,7 +262,7 @@ const isFree = async (req, res, next) => {
               },
             ];
             let document = {
-              html: html,
+              html: file.content,
               data: {
                 users: usersPdf,
               },
