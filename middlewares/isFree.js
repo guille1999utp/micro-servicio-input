@@ -7,15 +7,32 @@ const { config }= require('../utils/config');
 const { client }= require('../utils/client');
 const axios= require('axios');
 const { urlFor } = require('../utils/image');
+const pdf = require("pdf-creator-node");
+const fs = require("fs");
 const { transporter } = require('../utils/nodemailer');
 
-let optionsCart = {
-  format: 'A4', printBackground: true, scale: 1, preferCSSPageSize: true
+let options = {
+  format: "A3",
+  orientation: "portrait",
+  border: "10mm",
+  header: {
+      height: "45mm",
+      contents: '<div style="text-align: center;">Author: Shyam Hajare</div>'
+  },
+  footer: {
+      height: "28mm",
+      contents: {
+          first: 'Cover page',
+          2: 'Second page', 
+          default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>', 
+          last: 'Last Page'
+      }
+  }
 };
 
+let html = fs.readFileSync('pdfGenerador.html', "utf8");
+
 const isFree = async (req, res, next) => {
-  let Chromium = {};
-  let puppeteer;
   const { evento, users, staff } = req.body;
   const projectId = config.projectId;
   const dataset = config.dataset;
@@ -232,68 +249,44 @@ const isFree = async (req, res, next) => {
             </html>`,
             };
 
-            console.log(file);
-          let options = {};
-        async function generatePdf(file, options, callback) {
-            options = {
-              args: [...Chromium.args,"--hide-scrollbars","--disable-web-security"],
-              defaultViewport: Chromium.defaultViewport,
-              executablePath: await Chromium.executablePath,
-              headless: true,
-              ignoreHTTPSErrors: true,
-            };
-        try {
-            let browser = await Chromium.puppeteer.launch(options)
-            let page = await browser.newPage();
-            console.log(page);
-  
-            if (file.content) {
-              const dataChronium = await inlineCss(file.content, { url: "/" });
-              // we have compile our code with handlebars
-              const template = hb.compile(dataChronium, { strict: true });
-              const result = template(dataChronium);
-              const html = result;
-  
-              // We set the page content as the generated html by handlebars
-              await page.setContent(html, {
-                waitUntil: 'networkidle0', // wait for page to load completely
-              });
-            } else {
-              await page.goto("https://www.google.com", {
-                waitUntil: ['load', 'networkidle0'], // wait for page to load completely
-              });
-            }
-            console.log("return");
-            return Promise.props(page.pdf(optionsCart))
-              .then(async function (dataChronium) {
-                await browser.close();
-                console.log("await return buffer");
-                return Buffer.from(Object.values(dataChronium));
-              }).asCallback(callback);
-          } catch (error) {
-            console.error(error);
-            
-          }
-
-        }
-        console.log("generando buffer pa");
-
-        generatePdf(file, options).then(async pdfBuffer => {
-          console.log('Generating PDF');
-          await transporter.sendMail({
-            from: `"inputlatam@gmail.com" <${process.env.CORREO_SECRET}>`, // sender address
-            to: users[0].correo, // list of receivers
-            subject: `inputlatam.com -> Entrada ${event[0].nombre}`, // Subject line
-            text: "", // plain text body
-            attachments: [
+            let usersPdf = [
               {
-                // binary buffer as an attachment
-                filename: "Entrada.pdf",
-                content: pdfBuffer,
+                name: "Shyam",
+                age: "26",
               },
-            ],
-          });
-        });
+              {
+                name: "Navjot",
+                age: "26",
+              },
+              {
+                name: "Vitthal",
+                age: "26",
+              },
+            ];
+            let document = {
+              html: html,
+              data: {
+                users: usersPdf,
+              },
+              path: `./${data.results[0].id}.pdf`,
+              type: "",
+            };
+
+            console.log("llego");
+            await pdf.create(document, options);
+           await transporter.sendMail({
+             from: `"inputlatam@gmail.com" <${process.env.CORREO_SECRET}>`, // sender address
+             to: users[0].correo, // list of receivers
+             subject: `inputlatam.com -> Entrada ${event[0].nombre}`, // Subject line
+             text: "", // plain text body
+             attachments: [
+               {
+                 // binary buffer as an attachment
+                 filename: "Entrada.pdf",
+                 content: fs.createReadStream(`./${data.results[0].id}.pdf`),
+               },
+             ],
+           });
       }
       res.status(200).json({ global: "isFree" });
     }
