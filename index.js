@@ -9,10 +9,8 @@ const { isAuth } = require("./middlewares/auth");
 
 app.use(cors());
 app.use(express.json());
-app.use(isAuth)
+app.use(isAuth);
 app.use(isFree);
-
-
 
 app.post("/mercadopago", async (req, res) => {
   const { evento, users, staff, ...resBody } = req.body;
@@ -155,6 +153,6 @@ app.post("/mercadopago", async (req, res) => {
   }
 });
 
-app.listen(5000, () => {
+app.listen(80, () => {
   console.log("server started on port 5000");
 });
